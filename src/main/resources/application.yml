@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 8083
 
 spring:
   application:
@@ -29,3 +29,9 @@ spring:
 #  client:
 #    service-url:
 #      defaultZone: http://discovery.sweetify.com/eureka/
+
+ms-stock:
+  ms-products:
+    base-url: http://localhost:8082/ingredients/
+    add-stock-uri: stock/add
+    consume-stock-uri: stock/consume

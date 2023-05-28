@@ -1,9 +1,14 @@
 package com.frcalderon.stock.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.frcalderon.stock.model.UpdateStockRequest;
 import com.frcalderon.stock.controller.dto.StockRequest;
 import com.frcalderon.stock.exceptions.StockNotFoundException;
 import com.frcalderon.stock.model.Stock;
+import com.frcalderon.stock.model.UpdateStock;
 import com.frcalderon.stock.repository.StockRepository;
+import com.frcalderon.stock.repository.UpdateStockRepository;
 import com.frcalderon.stock.utils.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -22,6 +27,12 @@ public class StockServiceTests {
 
     @Mock
     private StockRepository stockRepository;
+
+    @Mock
+    private UpdateStockRepository updateStockRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private StockService stockService;
@@ -80,7 +91,7 @@ public class StockServiceTests {
     }
 
     @Test
-    public void StockService_Create_ReturnStock() {
+    public void StockService_Create_ReturnStock() throws JsonProcessingException {
         StockRequest request = StockRequest.builder()
                 .quantity(50.5)
                 .expirationDate("31-12-2023")
@@ -96,7 +107,21 @@ public class StockServiceTests {
                 .date(now)
                 .build();
 
+        UpdateStock updateStock = UpdateStock.builder()
+                .request(
+                        UpdateStockRequest.builder()
+                                .ingredientId(request.getIngredientId())
+                                .stock(request.getQuantity())
+                                .build()
+                                .toString()
+                )
+                .uri("this is a uri")
+                .sent(false)
+                .build();
+
         when(stockRepository.save(any(Stock.class))).thenReturn(newStock);
+        when(objectMapper.writeValueAsString(any(String.class))).thenReturn("request");
+        when(updateStockRepository.save(any(UpdateStock.class))).thenReturn(updateStock);
 
         Stock result = stockService.createStock(request);
 
@@ -105,10 +130,13 @@ public class StockServiceTests {
         Assertions.assertTrue(result.getExpirationDate().isEqual(LocalDate.parse("31-12-2023", Utils.localDateTimeFormatter())));
         Assertions.assertEquals(1L, result.getIngredientId());
         Assertions.assertTrue(result.getDate().isEqual(now));
+
+        verify(stockRepository, times(1)).save(any(Stock.class));
+        verify(updateStockRepository, times(1)).save(any(UpdateStock.class));
     }
 
     @Test
-    public void StockService_Update_ReturnStock() {
+    public void StockService_Update_ReturnStock() throws JsonProcessingException {
         StockRequest request = StockRequest.builder()
                 .quantity(70.5)
                 .expirationDate("15-12-2023")
@@ -124,8 +152,22 @@ public class StockServiceTests {
                 .date(now)
                 .build();
 
+        UpdateStock updateStock = UpdateStock.builder()
+                .request(
+                        UpdateStockRequest.builder()
+                                .ingredientId(request.getIngredientId())
+                                .stock(request.getQuantity())
+                                .build()
+                                .toString()
+                )
+                .uri("this is a uri")
+                .sent(false)
+                .build();
+
         when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+        when(objectMapper.writeValueAsString(any(String.class))).thenReturn("request");
         when(stockRepository.save(any(Stock.class))).thenReturn(updatedStock);
+        when(updateStockRepository.save(any(UpdateStock.class))).thenReturn(updateStock);
 
         Stock result = stockService.updateStock(1L, request);
 
@@ -137,6 +179,7 @@ public class StockServiceTests {
 
         verify(stockRepository, times(1)).findById(1L);
         verify(stockRepository, times(1)).save(any(Stock.class));
+        verify(updateStockRepository, times(2)).save(any(UpdateStock.class));
     }
 
     @Test
@@ -152,16 +195,33 @@ public class StockServiceTests {
         Assertions.assertThrows(StockNotFoundException.class, () -> stockService.updateStock(2L, request));
 
         verify(stockRepository, times(1)).findById(2L);
+        verify(stockRepository, times(0)).save(any(Stock.class));
+        verify(updateStockRepository, times(0)).save(any(UpdateStock.class));
     }
 
     @Test
-    public void StockService_Delete_ReturnVoid() {
-        when(stockRepository.existsById(1L)).thenReturn(true);
+    public void StockService_Delete_ReturnVoid() throws JsonProcessingException {
+        UpdateStock updateStock = UpdateStock.builder()
+                .request(
+                        UpdateStockRequest.builder()
+                                .ingredientId(stock.getIngredientId())
+                                .stock(stock.getQuantity())
+                                .build()
+                                .toString()
+                )
+                .uri("this is a uri")
+                .sent(false)
+                .build();
+
+        when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+        when(objectMapper.writeValueAsString(any(String.class))).thenReturn("request");
+        when(updateStockRepository.save(any(UpdateStock.class))).thenReturn(updateStock);
 
         stockService.deleteStock(1L);
 
-        verify(stockRepository, times(1)).existsById(1L);
+        verify(stockRepository, times(1)).findById(1L);
         verify(stockRepository, times(1)).deleteById(1L);
+        verify(updateStockRepository, times(1)).save(any(UpdateStock.class));
     }
 
     @Test
@@ -170,7 +230,8 @@ public class StockServiceTests {
 
         Assertions.assertThrows(StockNotFoundException.class, () -> stockService.deleteStock(2L));
 
-        verify(stockRepository, times(1)).existsById(2L);
+        verify(stockRepository, times(1)).findById(2L);
         verify(stockRepository, times(0)).deleteById(2L);
+        verify(updateStockRepository, times(0)).save(any(UpdateStock.class));
     }
 }

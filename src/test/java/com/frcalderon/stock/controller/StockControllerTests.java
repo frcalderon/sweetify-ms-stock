@@ -124,8 +124,6 @@ public class StockControllerTests {
 
     @Test
     public void StockController_CreateStock_ReturnStockResponseAndCreated() throws Exception {
-        // TODO - Request to ms-products to add stock
-
         when(stockService.createStock(stockRequest)).thenReturn(stock);
 
         ResultActions response = mockMvc.perform(post("/stock")
@@ -158,8 +156,6 @@ public class StockControllerTests {
 
     @Test
     public void StockController_UpdateStock_ReturnStockResponseAndOk() throws Exception {
-        // TODO - Request to ms-products to consume stock
-        // TODO - Request to ms-products to add stock
         Long stockId = 1L;
         when(stockService.updateStock(stockId, stockRequest)).thenReturn(stock);
 
@@ -193,8 +189,6 @@ public class StockControllerTests {
 
     @Test
     public void StockController_DeleteStock_ReturnNoContent() throws Exception {
-        // TODO - Request to ms-products to consume stock
-
         Long stockId = 1L;
         doNothing().when(stockService).deleteStock(stockId);
 

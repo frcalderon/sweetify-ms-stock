@@ -1,5 +1,6 @@
 package com.frcalderon.stock.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.frcalderon.stock.controller.dto.StockRequest;
 import com.frcalderon.stock.controller.dto.StockResponse;
 import com.frcalderon.stock.model.Stock;
@@ -34,21 +35,21 @@ public class StockController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public StockResponse createStock(@RequestBody StockRequest stockRequest) {
+    public StockResponse createStock(@RequestBody StockRequest stockRequest) throws JsonProcessingException {
         Stock stock = this.stockService.createStock(stockRequest);
         return new StockResponse(stock);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public StockResponse updateStock(@PathVariable Long id, @RequestBody StockRequest stockRequest) {
+    public StockResponse updateStock(@PathVariable Long id, @RequestBody StockRequest stockRequest) throws JsonProcessingException {
         Stock stock = this.stockService.updateStock(id, stockRequest);
         return new StockResponse(stock);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteStock(@PathVariable Long id) {
+    public void deleteStock(@PathVariable Long id) throws JsonProcessingException {
         this.stockService.deleteStock(id);
     }
 }

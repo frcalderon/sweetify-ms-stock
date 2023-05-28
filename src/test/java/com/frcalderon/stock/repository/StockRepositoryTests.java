@@ -8,6 +8,7 @@ import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -112,5 +113,30 @@ public class StockRepositoryTests {
         Optional<Stock> deletedStock = stockRepository.findById(stock.getId());
 
         Assertions.assertThat(deletedStock).isEmpty();
+    }
+
+    @Test
+    public void StockRepository_FindAllWithExpirationDateTimeBefore_ReturnMoreThanOneStock() {
+        Stock expiredStock = Stock.builder()
+                .quantity(50.0)
+                .expirationDate(LocalDate.now().minusDays(5))
+                .date(LocalDate.now())
+                .ingredientId(1L)
+                .build();
+
+        Stock nonExpiredStock = Stock.builder()
+                .quantity(50.0)
+                .expirationDate(LocalDate.now().plusDays(5))
+                .date(LocalDate.now())
+                .ingredientId(1L)
+                .build();
+
+        stockRepository.save(expiredStock);
+        stockRepository.save(nonExpiredStock);
+
+        List<Stock> expiredStockList = stockRepository.findAllWithExpirationDateTimeBefore(LocalDate.now());
+
+        Assertions.assertThat(expiredStockList).isNotNull();
+        Assertions.assertThat(expiredStockList.size()).isEqualTo(1);
     }
 }
