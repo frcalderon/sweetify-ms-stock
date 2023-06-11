@@ -226,7 +226,7 @@ public class StockServiceTests {
 
     @Test
     public void StockService_Delete_ReturnStockNotFoundException() {
-        when(stockRepository.existsById(2L)).thenReturn(false);
+        when(stockRepository.findById(2L)).thenReturn(Optional.empty());
 
         Assertions.assertThrows(StockNotFoundException.class, () -> stockService.deleteStock(2L));
 

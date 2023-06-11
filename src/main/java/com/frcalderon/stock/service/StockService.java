@@ -19,7 +19,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-//@AllArgsConstructor
 public class StockService {
 
     @Value("${ms-stock.ms-products.add-stock-uri:stock/add}")
